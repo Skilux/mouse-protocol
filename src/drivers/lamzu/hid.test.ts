@@ -422,6 +422,33 @@ test("the Inca's DFU bootloader identities are not offered as mice", () => {
   }
 });
 
+test("each Paro Aurora connection gets the rate list the vendor table offers", () => {
+  // Taken from Lamzu's Aurora web configurator device table
+  // (Config/env-models.json, ModelEN: PARO) — see docs/lamzu-paro-testing.md.
+  // Not yet exercised on hardware.
+  assert.equal(lamzuProduct(LAMZU_INCA_VENDOR_ID, 0x0007)?.model, "Paro Aurora");
+  assert.equal(lamzuProduct(LAMZU_INCA_VENDOR_ID, 0x000d)?.model, "Paro Aurora");
+  assert.equal(lamzuProduct(LAMZU_INCA_VENDOR_ID, 0x000e)?.model, "Paro Aurora");
+  assert.deepEqual(LAMZU_INCA_PRODUCTS.get(0x0007)?.pollingRates, [125, 250, 500, 1000]);
+  assert.deepEqual(LAMZU_INCA_PRODUCTS.get(0x000d)?.pollingRates, [125, 250, 500, 1000]);
+  assert.deepEqual(LAMZU_INCA_PRODUCTS.get(0x000e)?.pollingRates, [500, 1000, 2000, 4000, 8000]);
+  assert.equal(LAMZU_INCA_PRODUCTS.get(0x0007)?.wireless, false);
+  assert.equal(LAMZU_INCA_PRODUCTS.get(0x000d)?.wireless, true);
+  assert.equal(LAMZU_INCA_PRODUCTS.get(0x000e)?.wireless, true);
+  // A Paro id under the shared CompX vendor id must not resolve to a Lamzu.
+  assert.equal(lamzuProduct(LAMZU_VENDOR_ID, 0x0007), undefined);
+});
+
+test("the Paro Aurora's DFU bootloader identities are not offered as mice", () => {
+  // 0x0008 is the mouse's flashing identity and 0x0004 the 1K dongle's
+  // (DeviceBLPID / Receiver1KBLPID in the Aurora table); 0x0002, the 8K
+  // dongle's flashing identity, is already excluded with the Inca's.
+  for (const bootloader of [0x0008, 0x0004]) {
+    assert.equal(LAMZU_INCA_PRODUCTS.has(bootloader), false);
+    assert.equal(LamzuHidClient.isSupported(fakeInca(bootloader)), false);
+  }
+});
+
 test("the wired Inca is recognised and reads as a wired 1000 Hz mouse", async () => {
   // On the cable the mouse reported polling 0x01 and a charging battery.
   const wired = fakeInca(0x0009, { "2:1:128": [0x01, 0x01], "2:0:131": [0x01, 0x64] });
