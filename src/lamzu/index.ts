@@ -96,11 +96,30 @@ export const LAMZU_VENDOR_IDS: readonly number[] = [LAMZU_VENDOR_ID, LAMZU_INCA_
  * `DeviceBLPID` and `Receiver4K8KBLPID` — the DFU bootloader identities the
  * mouse and dongle take while flashing firmware. They never speak this
  * protocol and must not be offered in the picker.
+ *
+ * The Paro Aurora (2025) rides the same vendor id with the same new-protocol
+ * framing (`IsNewProtocol: 1`, `IsCompx: 0`, identical flags to the Inca
+ * entry), so it shares this catalog: 0x0007 is the mouse on its cable, 0x000d
+ * the 1K receiver, 0x000e the 8K receiver. All three are taken from Lamzu's
+ * Aurora web configurator device table (`Config/env-models.json`,
+ * `ModelEN: PARO`) — see docs/lamzu-paro-testing.md — and have NOT been
+ * exercised on hardware yet. Its `PollingRateWired` 125-1000,
+ * `_1KDonglePollingRate` 125-1000, `_8KDonglePollingRate` 500-8000 and
+ * `DPIMax` 30000 (already the driver default) mirror the Inca, so no
+ * `maxDpi` override is needed.
+ *
+ * Deliberately absent for the Paro as well: 0x0008 (`DeviceBLPID`) and 0x0004
+ * (`Receiver1KBLPID`) — its DFU bootloader identities. 0x0002
+ * (`Receiver4K8KBLPID`) is shared with the Inca's dongle bootloader and is
+ * already excluded above.
  */
 export const LAMZU_INCA_PRODUCTS: ReadonlyMap<number, LamzuProduct> = new Map([
   [0x0009, { model: "Inca 8K", wireless: false, pollingRates: RATES_1K }],
   [0x000f, { model: "Inca 8K", wireless: true, pollingRates: RATES_1K }],
   [0x0010, { model: "Inca 8K", wireless: true, pollingRates: RATES_8K }],
+  [0x0007, { model: "Paro Aurora", wireless: false, pollingRates: RATES_1K }],
+  [0x000d, { model: "Paro Aurora", wireless: true, pollingRates: RATES_1K }],
+  [0x000e, { model: "Paro Aurora", wireless: true, pollingRates: RATES_8K }],
 ]);
 
 /**
